@@ -64,10 +64,15 @@ public class Main {
         Set<String> documentsContainingWord = hitList.get(word);
         if(documentsContainingWord == null) {
             documentsContainingWord = new HashSet<>();
-            hitList.put(word, documentsContainingWord);
+            String normalizedWord = normalize(word);
+            if(normalizedWord.length() > 0)
+                hitList.put(normalize(word), documentsContainingWord);
         }
         documentsContainingWord.add(docName);
     }
 
+    public static String normalize(String original) {
+        return original.replaceAll("[^a-zA-z0-9]", "").toLowerCase();
+    }
 
 }
