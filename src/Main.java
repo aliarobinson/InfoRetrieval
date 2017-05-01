@@ -15,8 +15,6 @@ public class Main {
 
         curateDocuments();
 
-
-
         while(true) {
             System.out.println("Enter search query, or 'quit' to exit: ");
             Scanner scanner = new Scanner(System.in);
@@ -51,12 +49,12 @@ public class Main {
     static void processDocument(File document) {
         try {
             String content = new String(Files.readAllBytes(document.toPath()));
-            StringTokenizer tokenizer = new StringTokenizer(content);
-            while(tokenizer.hasMoreTokens()) {
-                addToHitList(tokenizer.nextToken(), document.getName());
-            }
-            Document doc = new Document(content);
+            Document doc = new Document(document.getName(), content);
             documentList.add(doc);
+            List<String> words = doc.getActualWords();
+            for (String word : words) {
+                addToHitList(word, document.getName());
+            }
         } catch (Exception e) {
             System.out.println(e);
         }
@@ -70,4 +68,6 @@ public class Main {
         }
         documentsContainingWord.add(docName);
     }
+
+
 }
