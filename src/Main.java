@@ -66,6 +66,7 @@ public class Main {
         Set<String> documentsContainingWord = hitList.get(word);
         if(documentsContainingWord == null) {
             documentsContainingWord = new HashSet<>();
+            hitList.put(word, documentsContainingWord);
         }
         documentsContainingWord.add(docName);
     }
