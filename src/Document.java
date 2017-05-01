@@ -48,8 +48,9 @@ public class Document {
             anchorTags.add(matcher.group(1));
         }
     }
-    public int getLength() {
-        return this.content.length();
+
+    public int getNumWords() {
+        return this.actualWords.size();
     }
 
     public List<String> getAnchorTags() {
@@ -58,5 +59,10 @@ public class Document {
 
     public List<String> getActualWords() {
         return this.actualWords;
+    }
+
+    public int getFrequencyOfWord(String word) {
+        //TODO
+        return 0;
     }
 }

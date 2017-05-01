@@ -11,6 +11,8 @@ public class Main {
     static Map<String, Set<String>> hitList;
     static List<Document> documentList;
 
+    static int averageDocumentLength;
+
     public static void main(String[] args) {
 
         curateDocuments();
@@ -40,13 +42,17 @@ public class Main {
 
         File corpusDirectory = new File("corpus");
         File[] list = corpusDirectory.listFiles();
+        int sumLengths = 0;
         for (File file : list) {
             System.out.println("Processing " + file.getName());
-            processDocument(file);
+            Document processedDoc = processDocument(file);
+            sumLengths += processedDoc.getNumWords();
         }
+
+        averageDocumentLength = sumLengths / list.length;
     }
 
-    static void processDocument(File document) {
+    static Document processDocument(File document) {
         try {
             String content = new String(Files.readAllBytes(document.toPath()));
             Document doc = new Document(document.getName(), content);
@@ -55,9 +61,11 @@ public class Main {
             for (String word : words) {
                 addToHitList(word, document.getName());
             }
+            return doc;
         } catch (Exception e) {
             System.out.println(e);
         }
+        return null;
     }
 
     static void addToHitList(String word, String docName) {
