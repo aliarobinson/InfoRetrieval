@@ -26,6 +26,10 @@ public class Document {
 
     }
 
+    public String getName() {
+        return this.name;
+    }
+
     private void extractWords() {
         this.actualWords = new ArrayList<>();
         Matcher matcher = wordsPattern.matcher(content);
@@ -62,7 +66,12 @@ public class Document {
     }
 
     public int getFrequencyOfWord(String word) {
-        //TODO
-        return 0;
+        int numOccurrences = 0;
+        for (String s : this.actualWords) {
+            if(Main.normalize(s).equals(Main.normalize(word))) {
+                numOccurrences++;
+            }
+        }
+        return numOccurrences;
     }
 }

@@ -13,6 +13,9 @@ public class Main {
 
     static int averageDocumentLength;
 
+    static double k1 = 1.2;
+    static double b = 0.75;
+
     public static void main(String[] args) {
 
         curateDocuments();
@@ -27,10 +30,12 @@ public class Main {
             }
 
             // Find relevant documents
-            if(hitList.get(input) != null) {
-                System.out.println("Yes");
-            } else {
-                System.out.println("NO");
+            TreeMap<Double, Document> scoredDocs = new TreeMap<>();
+            for (Document d : documentList) {
+                scoredDocs.put(BM25(d, input), d);
+            }
+            for (Double score : scoredDocs.descendingKeySet()) {
+                System.out.println(scoredDocs.get(score).getName() + ", " + score);
             }
         }
 
@@ -79,8 +84,31 @@ public class Main {
         documentsContainingWord.add(docName);
     }
 
-    public static String normalize(String original) {
+    static String normalize(String original) {
         return original.replaceAll("[^a-zA-z0-9]", "").toLowerCase();
+    }
+
+    static double inverseDocumentFrequency(String term) {
+        Set<String> documentsContainingWord = hitList.get(term);
+        int numDocsWithWord = 0;
+        if (documentsContainingWord != null)
+            numDocsWithWord = documentsContainingWord.size();
+        double result = ((double) documentList.size()) - ((double) numDocsWithWord) + 0.5;
+        result = result / (numDocsWithWord + 0.5);
+        return Math.log(result);
+    }
+
+    static double BM25(Document document, String input){
+        String[] query = input.split(" ");
+        double sum = 0;
+        for(String keyword : query) {
+            double value = inverseDocumentFrequency(keyword);
+            double frequencyInDocument = document.getFrequencyOfWord(keyword);
+            value *= frequencyInDocument * (k1 + 1);
+            value /= (frequencyInDocument + (k1 * (1 - b + b * document.getNumWords() / averageDocumentLength)));
+            sum += value;
+        }
+        return sum;
     }
 
 }
