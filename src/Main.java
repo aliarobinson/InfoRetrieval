@@ -46,7 +46,10 @@ public class Main {
                 previousScore = score;
             }
 
-            System.out.println(sb.substring(0, sb.length() - 2));
+            if(sb.length() > 0)
+                System.out.println(sb.substring(0, sb.length() - 2));
+            else
+                System.out.println("No results found");
         }
 
     }
