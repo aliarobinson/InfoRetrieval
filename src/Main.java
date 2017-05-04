@@ -9,7 +9,7 @@ import java.util.*;
 public class Main {
 
     static Map<String, Set<String>> hitList;
-    static List<Document> documentList;
+    static Map<String, Document> documentList;
 
     static int averageDocumentLength;
 
@@ -30,20 +30,30 @@ public class Main {
             }
 
             // Find relevant documents
-            TreeMap<Double, Document> scoredDocs = new TreeMap<>();
-            for (Document d : documentList) {
-                scoredDocs.put(BM25(d, input), d);
-            }
+            TreeMap<Double, Document> scoredDocs = getRelevantDocs(input);
+
+            StringBuilder sb = new StringBuilder();
+            double previousScore = 0;
+            double previousGap = 0;
             for (Double score : scoredDocs.descendingKeySet()) {
-                System.out.println(scoredDocs.get(score).getName() + ", " + score);
+                if((previousGap > 0 && previousScore - score > previousGap * 5) || previousScore - score > 5) {
+                    break;
+                }
+                sb.append(scoredDocs.get(score).getTitle()).append(", ");
+
+                if(previousScore > 0)
+                    previousGap = previousScore - score;
+                previousScore = score;
             }
+
+            System.out.println(sb.substring(0, sb.length() - 2));
         }
 
     }
 
     static void curateDocuments() {
         hitList = new HashMap<>();
-        documentList = new ArrayList<>();
+        documentList = new HashMap<>();
 
         File corpusDirectory = new File("corpus");
         File[] list = corpusDirectory.listFiles();
@@ -61,7 +71,7 @@ public class Main {
         try {
             String content = new String(Files.readAllBytes(document.toPath()));
             Document doc = new Document(document.getName(), content);
-            documentList.add(doc);
+            documentList.put(document.getName(), doc);
             List<String> words = doc.getActualWords();
             for (String word : words) {
                 addToHitList(word, document.getName());
@@ -74,18 +84,47 @@ public class Main {
     }
 
     static void addToHitList(String word, String docName) {
+        word = normalize(word);
+        if(word.length() == 0)
+            return;
+
         Set<String> documentsContainingWord = hitList.get(word);
         if(documentsContainingWord == null) {
             documentsContainingWord = new HashSet<>();
-            String normalizedWord = normalize(word);
-            if(normalizedWord.length() > 0)
-                hitList.put(normalize(word), documentsContainingWord);
+            hitList.put(word, documentsContainingWord);
         }
         documentsContainingWord.add(docName);
     }
 
     static String normalize(String original) {
         return original.replaceAll("[^a-zA-z0-9]", "").toLowerCase();
+    }
+
+    static TreeMap<Double, Document> getRelevantDocs(String query) {
+        String[] words = query.split(" ");
+        Set<String> toSearch = new HashSet<>();
+        for(String word : words) {
+            Set<String> docs = hitList.get(word);
+            if(docs != null)
+                toSearch.addAll(hitList.get(word));
+        }
+
+        List<Document> docsToSearch = new ArrayList<>();
+        for (String docName : toSearch) {
+            docsToSearch.add(documentList.get(docName));
+        }
+
+        TreeMap<Double, Document> results = new TreeMap<>();
+        for (Document d : docsToSearch) {
+            double score = Math.abs(BM25(d, query));
+            if(d.isInTitle(query))
+                score += 5;
+            if(d.isInAnchorTags(query))
+                score += 2;
+            results.put(score, d);
+        }
+
+        return results;
     }
 
     static double inverseDocumentFrequency(String term) {
@@ -102,8 +141,9 @@ public class Main {
         String[] query = input.split(" ");
         double sum = 0;
         for(String keyword : query) {
-            double value = inverseDocumentFrequency(keyword);
-            double frequencyInDocument = document.getFrequencyOfWord(keyword);
+            String normalizedWord = normalize(keyword);
+            double value = inverseDocumentFrequency(normalizedWord);
+            double frequencyInDocument = document.getFrequencyOfWord(normalizedWord);
             value *= frequencyInDocument * (k1 + 1);
             value /= (frequencyInDocument + (k1 * (1 - b + b * document.getNumWords() / averageDocumentLength)));
             sum += value;

@@ -10,10 +10,13 @@ import java.util.regex.Pattern;
 public class Document {
 
     static Pattern wordsPattern = Pattern.compile(">(.*?)<");
-    static Pattern anchorPattern = Pattern.compile("<a(.*?)</a>");
+    static Pattern anchorPattern = Pattern.compile("<a.*?>(.*?)</a>");
+    static Pattern titlePattern = Pattern.compile("<title>(.*?) - Wikipedia");
 
     private String name;
     private String content;
+
+    private String articleTitle;
     private List<String> actualWords;
     private List<String> anchorTags;
 
@@ -21,13 +24,27 @@ public class Document {
         this.name = name;
         this.content = content;
 
+        extractTitle();
         extractWords();
         extractAnchorTags();
 
     }
 
-    public String getName() {
+    public String getFileName() {
         return this.name;
+    }
+
+    public String getTitle() {
+        return this.articleTitle;
+    }
+
+    private void extractTitle() {
+        Matcher matcher = titlePattern.matcher(content);
+        if(matcher.find()) {
+            this.articleTitle = matcher.group(1);
+        } else {
+            this.articleTitle = this.name;
+        }
     }
 
     private void extractWords() {
@@ -74,4 +91,24 @@ public class Document {
         }
         return numOccurrences;
     }
+
+    public boolean isInAnchorTags(String word) {
+        for(String tag :this.anchorTags) {
+            if(Main.normalize(tag).contains(Main.normalize(word))) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public boolean isInTitle(String query) {
+        String[] words = query.split(" ");
+        for(String word : words) {
+            if(Main.normalize(articleTitle).contains(Main.normalize(word))) {
+                return true;
+            }
+        }
+        return false;
+    }
+
 }
