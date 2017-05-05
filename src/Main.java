@@ -34,17 +34,13 @@ public class Main {
             TreeMap<Double, Document> scoredDocs = getRelevantDocs(input);
 
             StringBuilder sb = new StringBuilder();
-            double previousScore = 0;
-            double previousGap = 0;
+            int count = 0;
             for (Double score : scoredDocs.descendingKeySet()) {
-                if((previousGap > 0 && previousScore - score > previousGap * 5) || previousScore - score > 5) {
+                if (count == 10) {
                     break;
                 }
                 sb.append(scoredDocs.get(score).getTitle()).append(", ");
-
-                if(previousScore > 0)
-                    previousGap = previousScore - score;
-                previousScore = score;
+                count++;
             }
 
             if(sb.length() > 0)
