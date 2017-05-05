@@ -10,6 +10,7 @@ public class Main {
 
     static Map<String, Set<String>> hitList;
     static Map<String, Document> documentList;
+    static SkipBigram bigram;
 
     static int averageDocumentLength;
 
@@ -57,6 +58,7 @@ public class Main {
     static void curateDocuments() {
         hitList = new HashMap<>();
         documentList = new HashMap<>();
+        bigram = new SkipBigram(1);
 
         File corpusDirectory = new File("corpus");
         File[] list = corpusDirectory.listFiles();
@@ -65,6 +67,7 @@ public class Main {
             System.out.println("Processing " + file.getName());
             Document processedDoc = processDocument(file);
             sumLengths += processedDoc.getNumWords();
+            bigram.processBigrams(processedDoc.getActualWords().toArray(new String[0]));
         }
 
         averageDocumentLength = sumLengths / list.length;

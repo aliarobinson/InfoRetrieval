@@ -66,4 +66,16 @@ public class SkipBigram {
         double wordProb = ((double) precedingWordCount) / totalWordCount;
         return bigramProb / wordProb;
     }
+
+    /**
+     * Returns the number of times the given bigram occurs in the corpus.
+     *
+     * @param word1
+     * @param word2
+     * @return
+     */
+    public int getBigramFreqeuncy(String word1, String word2) {
+        Pair<String, String> bigramWords = new Pair<>(word1, word2);
+        return bigramMap.get(bigramWords);
+    }
 }
